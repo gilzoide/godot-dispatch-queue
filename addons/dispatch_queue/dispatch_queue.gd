@@ -118,6 +118,13 @@ func is_threaded() -> bool:
 	return _workers != null
 
 
+func get_thread_count() -> int:
+	if is_threaded():
+		return _workers.threads.size()
+	else:
+		return 0
+
+
 func clear() -> void:
 	if is_threaded():
 		_workers.mutex.lock()

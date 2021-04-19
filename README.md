@@ -48,6 +48,10 @@ dispatch_queue.dispatch(self, "method_name", ["method", "arguments"]).then(self,
 `is_threaded() -> bool`
 - Returns whether queue is threaded or synchronous.
 
+`get_thread_count() -> int`
+- Returns the current Thread count.
+  Returns 0 on synchronous mode.
+
 `clear()`
 - Cancel pending Tasks, clearing the current queue.
 
@@ -70,6 +74,18 @@ dispatch_queue.dispatch(self, "method_name", ["method", "arguments"]).then(self,
 dispatch_queue.dispatch(object, method).then(signal_responder, method)
 ```
 
+
+**DispatchQueueNode** ([addons/dispatch_queue/dispatch_queue_node.gd](addons/dispatch_queue/dispatch_queue_node.gd)):
+Node that wraps a DispatchQueue. Useful as an Autoload to have a DispatchQueue available globally.
+
+Apart from creation, all DispatchQueue public methods and signals are supported.
+
+Creates the Threads when entering tree and shuts down when exiting tree.
+
+`export(int) var thread_count = -1`
+- Number of Threads DispatchQueue will utilize.
+  If `thread_count == 0`, runs queue in synchronous mode.
+  If `thread_count < 0`, creates `OS.get_processor_count()` Threads.
 
 
 ## Similar projects

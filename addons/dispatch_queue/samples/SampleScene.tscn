@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://addons/dispatch_queue/samples/SampleScene.gd" type="Script" id=1]
+[ext_resource path="res://addons/dispatch_queue/dispatch_queue_node.gd" type="Script" id=2]
 
 [node name="Node" type="Node"]
 script = ExtResource( 1 )
@@ -19,4 +20,6 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="DispatchQueue" type="Node" parent="."]
+script = ExtResource( 2 )
 [connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]
