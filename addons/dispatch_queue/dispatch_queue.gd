@@ -77,7 +77,7 @@ func create_serial() -> void:
 	create_concurrent(1)
 
 
-func create_concurrent(thread_count := 1) -> void:
+func create_concurrent(thread_count: int = 1) -> void:
 	"""Attempt to create a threaded Dispatch Queue with thread_count Threads"""
 	if is_threaded():
 		shutdown()
