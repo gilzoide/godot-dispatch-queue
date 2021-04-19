@@ -20,6 +20,9 @@ dispatch_queue.dispatch(self, "method_name", ["method", "arguments"]).then(self,
 # DispatchQueue extends Reference, so no need to worry about freeing manually
 ```
 
+There is also a Node script ([addons/dispatch_queue/dispatch_queue_node.gd](addons/dispatch_queue/dispatch_queue_node.gd))
+that wraps every aspect of dispatch queues. Useful both as a living Node in a scene or as an Autoload.
+
 
 ## API
 **DispatchQueue** ([addons/dispatch_queue/dispatch_queue.gd](addons/dispatch_queue/dispatch_queue.gd)):
