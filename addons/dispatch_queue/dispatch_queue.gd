@@ -214,7 +214,11 @@ func _run_loop(pool: _WorkerPool) -> void:
 
 
 func _pop_task(_sync_task_result = null) -> Task:
-	var task = _task_queue.pop_front()
+	var task: Task = _task_queue.pop_front()
 	if _task_queue.empty():
-		call_deferred("emit_signal", "all_tasks_finished")
+		task.then_deferred(self, "_on_last_task_finished")
 	return task
+
+
+func _on_last_task_finished(_result):
+	emit_signal("all_tasks_finished")
