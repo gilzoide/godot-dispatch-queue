@@ -46,7 +46,7 @@ class Task:
 	A single task to be executed.
 	
 	Connect to the `finished` signal to receive the result either manually
-	or by calling `then`.
+	or by calling `then`/`then_deferred`.
 	"""
 	extends Reference
 	

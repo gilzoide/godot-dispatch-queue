@@ -82,6 +82,9 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 
 `signal finished(result)`
 - Emitted after Task executes its method, passing the result as argument.
+  The signal is emitted in the same Thread that executed the Task, so you
+  need to connect with `CONNECT_DEFERRED` if you want to call non [Thread-safe
+  APIs](https://docs.godotengine.org/en/stable/tutorials/threads/thread_safe_apis.html).
 
 `then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0)`
 - Helper method for connecting to the "finished" signal.	
@@ -99,6 +102,9 @@ dispatch_queue.dispatch(object, method).then(signal_responder, method)
 
 `signal finished()`
 - Emitted after all Tasks in the group finish.
+  The signal is emitted in the same Thread that executed the last Task, so you
+  need to connect with `CONNECT_DEFERRED` if you want to call non [Thread-safe
+  APIs](https://docs.godotengine.org/en/stable/tutorials/threads/thread_safe_apis.html).
 
 `then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0)`
 - Helper method for connecting to the "finished" signal.	
