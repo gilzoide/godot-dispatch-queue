@@ -1,6 +1,8 @@
 # Dispatch Queue
 Threaded or synchronous Dispatch Queues for [Godot](https://godotengine.org/).
 
+Threaded Dispatch Queues are also known as Thread Pools.
+
 
 ## Usage
 ```gdscript
@@ -14,10 +16,13 @@ dispatch_queue.create_serial()
 dispatch_queue.create_concurrent(OS.get_processor_count())
 # (if you do neither, DispatchQueue will run in synchronous mode)
 
-# 3) Dispatch calls and optionally registering callbacks
+# 3) Dispatch calls and optionally register callbacks, fire and forget style
 dispatch_queue.dispatch(self, "method_name", ["method", "arguments"]).then(self, "result_callback")
 
-# DispatchQueue extends Reference, so no need to worry about freeing manually
+# 4) Optionally connect to the `all_tasks_finished` signal to know when all tasks finished
+dispatch_queue.connect("all_tasks_finished", self, "_on_all_tasks_finished")
+
+# DispatchQueue extends Reference, so no need to worry about freeing it manually
 ```
 
 There is a Node script ([addons/dispatch_queue/dispatch_queue_node.gd](addons/dispatch_queue/dispatch_queue_node.gd))
