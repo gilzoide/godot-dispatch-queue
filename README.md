@@ -36,17 +36,19 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 ### **DispatchQueue** ([addons/dispatch_queue/dispatch_queue.gd](addons/dispatch_queue/dispatch_queue.gd)):
 
 `signal all_tasks_finished()`
-- Emitted when there are no more tasks to process.
+- Emitted when the last queued Task finishes.
 
 `create_serial()`
 - Creates a Thread of execution to process tasks.
   If threading is not supported, fallback to synchronous mode.
-  If there were previously allocated Threads, calls `shutdown`.
+  If queue was already serial, this is a no-op, otherwise
+  calls `shutdown` and create a new Thread.
 
 `create_concurrent(thread_count: int = 1)`
 - Creates `thread_count` Threads of execution to process tasks.
   If threading is not supported, fallback to synchronous mode.
-  If there were previously allocated Threads, calls `shutdown`.
+  If queue was already concurrent with `thread_count` Threads,
+  this is a no-op, otherwise calls `shutdown` and create new Threads.
   If `thread_count <= 1`, creates a serial queue.
 
 
