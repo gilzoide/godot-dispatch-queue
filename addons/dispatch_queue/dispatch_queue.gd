@@ -8,9 +8,10 @@ class TaskGroup:
 	"""
 	extends Reference
 	
-	signal finished()
+	signal finished(results)
 	
 	var task_count = 0
+	var task_results = []
 	
 	
 	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
@@ -35,10 +36,18 @@ class TaskGroup:
 		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
 	
 	
-	func mark_task_finished() -> void:
+	func add_task(task) -> void:
+		task.group = self
+		task.id_in_group = task_count
+		task_count += 1
+		task_results.resize(task_count)
+	
+	
+	func mark_task_finished(task, result) -> void:
 		task_count -= 1
+		task_results[task.id_in_group] = result
 		if task_count == 0:
-			emit_signal("finished")
+			emit_signal("finished", task_results)
 
 
 class Task:
@@ -56,6 +65,7 @@ class Task:
 	var method: String
 	var args: Array
 	var group: TaskGroup = null
+	var id_in_group: int = -1
 	
 	
 	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
@@ -84,7 +94,7 @@ class Task:
 		var result = object.callv(method, args)
 		emit_signal("finished", result)
 		if group:
-			group.mark_task_finished()
+			group.call_deferred("mark_task_finished", self, result)
 
 
 class _WorkerPool:
@@ -167,8 +177,7 @@ func dispatch_group(task_list: Array) -> TaskGroup:
 	for args in task_list:
 		var task = callv("dispatch", args)
 		if task.object:
-			task.group = group
-			group.task_count += 1
+			group.add_task(task)
 	return group
 
 

@@ -10,17 +10,17 @@ func _ready() -> void:
 		dispatch_queue_resource = preload("res://addons/dispatch_queue/dispatch_queue_resource.gd").new()
 
 
-func _print(i):
+func _double(i):
 	print("Processing ", i)
-	return i
+	return i * 2
 
 
 func _finished(i) -> void:
 	print("Finished ", i)
 
 
-func _group_finished(from: int, to: int) -> void:
-	print("Group finished [%d, %d)" % [from, to])
+func _group_finished(results, from: int, to: int) -> void:
+	print("Group [%d, %d) finished: %s" % [from, to, results])
 
 
 func _all_finished() -> void:
@@ -44,5 +44,5 @@ func _dispatch_all(queue) -> void:
 func _dispatch_group(queue, from: int, to: int) -> void:
 	var tasks = []
 	for i in range(from, to):
-		tasks.append([self, "_print", [i]])
+		tasks.append([self, "_double", [i]])
 	queue.dispatch_group(tasks).then(self, "_group_finished", [from, to])

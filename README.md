@@ -102,11 +102,10 @@ dispatch_queue.dispatch(object, method).then(signal_responder, method)
 
 ### **TaskGroup** (inner class of DispatchQueue)
 
-`signal finished()`
-- Emitted after all Tasks in the group finish.
-  The signal is emitted in the same Thread that executed the last Task, so you
-  need to connect with `CONNECT_DEFERRED` if you want to call non [Thread-safe
-  APIs](https://docs.godotengine.org/en/stable/tutorials/threads/thread_safe_apis.html).
+`signal finished(results)`
+- Emitted after all Tasks in the group finish, passing the results Array as argument.
+  Contrary to Task's `finished` signal, this one is already called deferred, so it is
+  safe to call non [Thread-safe APIs](https://docs.godotengine.org/en/stable/tutorials/threads/thread_safe_apis.html).
 
 `then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0)`
 - Helper method for connecting to the "finished" signal.	
