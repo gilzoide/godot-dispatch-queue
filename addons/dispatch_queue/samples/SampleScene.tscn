@@ -1,25 +1,46 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://addons/dispatch_queue/samples/SampleScene.gd" type="Script" id=1]
 [ext_resource path="res://addons/dispatch_queue/dispatch_queue_node.gd" type="Script" id=2]
+[ext_resource path="res://addons/dispatch_queue/dispatch_queue_resource.gd" type="Script" id=3]
+
+[sub_resource type="Resource" id=1]
+script = ExtResource( 3 )
+thread_count = -1
 
 [node name="Node" type="Node"]
 script = ExtResource( 1 )
+dispatch_queue_resource = SubResource( 1 )
 
-[node name="Button" type="Button" parent="."]
+[node name="NodeButton" type="Button" parent="."]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -113.0
+margin_left = -265.655
 margin_top = -35.0
-margin_right = 113.0
+margin_right = -39.6548
 margin_bottom = 35.0
-text = "RUN"
+text = "RUN Node"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ResourceButton" type="Button" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = 39.6548
+margin_top = -35.0
+margin_right = 265.655
+margin_bottom = 35.0
+text = "RUN Resource"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="DispatchQueue" type="Node" parent="."]
 script = ExtResource( 2 )
-[connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]
+[connection signal="pressed" from="NodeButton" to="." method="_on_NodeButton_pressed"]
+[connection signal="pressed" from="ResourceButton" to="." method="_on_ResourceButton_pressed"]
