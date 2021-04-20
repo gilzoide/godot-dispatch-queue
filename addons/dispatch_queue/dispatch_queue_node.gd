@@ -25,10 +25,7 @@ func _ready() -> void:
 
 
 func _enter_tree() -> void:
-	if thread_count < 0:
-		thread_count = OS.get_processor_count()
-	if thread_count != 0 and not _dispatch_queue.is_threaded():
-		_dispatch_queue.create_concurrent(thread_count)
+	set_thread_count(thread_count)
 
 
 func _exit_tree() -> void:
