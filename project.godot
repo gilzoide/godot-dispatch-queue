@@ -22,6 +22,7 @@ Supports synchronous and threaded execution, with the later being either serial 
 If threading is not supported by OS, fallbacks to running in synchronous mode.
 
 There are signals for when each task is finished and another for when all tasks are finished, so it's very easy to hook callbacks.
+You can also dispatch a group of tasks at once and connect to a signal when all of them are finished.
 
 Dispatch queues are References, but there are Node and Resource wrappers for it to ease integrating with other nodes and scenes."
 run/main_scene="res://addons/dispatch_queue/samples/SampleScene.tscn"
