@@ -47,6 +47,10 @@ func dispatch(object: Object, method: String, args: Array = []) -> DispatchQueue
 	return _dispatch_queue.dispatch(object, method, args)
 
 
+func dispatch_group(task_list: Array) -> DispatchQueue.TaskGroup:
+	return _dispatch_queue.dispatch_group(task_list)
+
+
 func is_threaded() -> bool:
 	return _dispatch_queue.is_threaded()
 

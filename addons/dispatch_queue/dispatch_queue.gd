@@ -2,30 +2,20 @@ extends Reference
 
 signal all_tasks_finished()
 
-class Task:
+class TaskGroup:
 	"""
-	A single task to be executed.
-	
-	Connect to the "finished" signal to receive the result either manually
-	or by calling "then".
+	Helper object that emits `finished` after all Tasks in a list finish.
 	"""
 	extends Reference
 	
-	signal finished(result)
+	signal finished()
 	
-	var object: Object
-	var method: String
-	var args: Array
-	
-	
-	func execute() -> void:
-		var result = object.callv(method, args)
-		emit_signal("finished", result)
+	var task_count = 0
 	
 	
 	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
 		"""
-		Helper method for connecting to the 'finished' signal.
+		Helper method for connecting to the `finished` signal.
 		
 		This enables the following pattern:
 			
@@ -37,9 +27,64 @@ class Task:
 			push_error("Object '%s' has no method named %s" % [signal_responder, method])
 			return ERR_METHOD_NOT_FOUND
 	
+	
 	func then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
-		"""Helper method for connecting to the 'finished' signal with deferred flag"""
+		"""
+		Helper method for connecting to the `finished` signal with deferred flag
+		"""
 		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
+	
+	
+	func mark_task_finished() -> void:
+		task_count -= 1
+		if task_count == 0:
+			emit_signal("finished")
+
+
+class Task:
+	"""
+	A single task to be executed.
+	
+	Connect to the `finished` signal to receive the result either manually
+	or by calling `then`.
+	"""
+	extends Reference
+	
+	signal finished(result)
+	
+	var object: Object
+	var method: String
+	var args: Array
+	var group: TaskGroup = null
+	
+	
+	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
+		"""
+		Helper method for connecting to the `finished` signal.
+		
+		This enables the following pattern:
+			
+			dispatch_queue.dispatch(object, method).then(signal_responder, method)
+		"""
+		if signal_responder.has_method(method):
+			return connect("finished", signal_responder, method, binds, flags | CONNECT_ONESHOT)
+		else:
+			push_error("Object '%s' has no method named %s" % [signal_responder, method])
+			return ERR_METHOD_NOT_FOUND
+	
+	
+	func then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
+		"""
+		Helper method for connecting to the `finished` signal with deferred flag
+		"""
+		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
+	
+	
+	func execute() -> void:
+		var result = object.callv(method, args)
+		emit_signal("finished", result)
+		if group:
+			group.mark_task_finished()
 
 
 class _WorkerPool:
@@ -114,8 +159,17 @@ func dispatch(object: Object, method: String, args: Array = []) -> Task:
 			task.call_deferred("execute")
 	else:
 		push_error("Object '%s' has no method named %s" % [object, method])
-		task.call_deferred("emit_signal", "finished", null)
 	return task
+
+
+func dispatch_group(task_list: Array) -> TaskGroup:
+	var group = TaskGroup.new()
+	for args in task_list:
+		var task = callv("dispatch", args)
+		if task.object:
+			task.group = group
+			group.task_count += 1
+	return group
 
 
 func is_threaded() -> bool:

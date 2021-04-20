@@ -56,6 +56,12 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
   there is one available.
   On synchronous mode, the Task will be executed on the next frame.
 
+`dispatch_group(task_list: Array) -> TaskGroup`
+- Create all tasks in `task_list` by calling `dispatch` on each value,
+  returning the TaskGroup associated with them.
+  `task_list` should be an Array of Arrays, each of them containing the
+  object, method and optional args Array, in this order.
+
 `is_threaded() -> bool`
 - Returns whether queue is threaded or synchronous.
 
@@ -83,6 +89,23 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 	This enables the following pattern:
 ```gdscript
 dispatch_queue.dispatch(object, method).then(signal_responder, method)
+```
+
+`then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0)`
+- Alias for `then` that also adds `CONNECT_DEFERRED` to flags.
+
+
+**TaskGroup** (inner class of DispatchQueue)
+
+`signal finished()`
+- Emitted after all Tasks in the group finish.
+
+`then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0)`
+- Helper method for connecting to the "finished" signal.	
+  Always adds `CONNECT_ONESHOT` to flags.
+	This enables the following pattern:
+```gdscript
+dispatch_queue.dispatch_group(task_list).then(signal_responder, method)
 ```
 
 `then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0)`
