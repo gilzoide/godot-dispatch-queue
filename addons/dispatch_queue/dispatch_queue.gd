@@ -25,17 +25,21 @@ class Task:
 	
 	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
 		"""
-		Helper method for connecting to the "finished" signal.
+		Helper method for connecting to the 'finished' signal.
 		
 		This enables the following pattern:
 			
 			dispatch_queue.dispatch(object, method).then(signal_responder, method)
 		"""
 		if signal_responder.has_method(method):
-			return connect("finished", signal_responder, method, binds, flags + CONNECT_ONESHOT)
+			return connect("finished", signal_responder, method, binds, flags | CONNECT_ONESHOT)
 		else:
 			push_error("Object '%s' has no method named %s" % [signal_responder, method])
 			return ERR_METHOD_NOT_FOUND
+	
+	func then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
+		"""Helper method for connecting to the 'finished' signal with deferred flag"""
+		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
 
 
 class _WorkerPool:

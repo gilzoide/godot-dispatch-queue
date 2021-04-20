@@ -85,6 +85,9 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 dispatch_queue.dispatch(object, method).then(signal_responder, method)
 ```
 
+`then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0)`
+- Alias for `then` that also adds `CONNECT_DEFERRED` to flags.
+
 
 **DispatchQueueNode** ([addons/dispatch_queue/dispatch_queue_node.gd](addons/dispatch_queue/dispatch_queue_node.gd)):
 
