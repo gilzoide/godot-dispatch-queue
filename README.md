@@ -17,7 +17,12 @@ dispatch_queue.create_concurrent(OS.get_processor_count())
 # (if you do neither, DispatchQueue will run in synchronous mode)
 
 # 3) Dispatch methods and optionally register callbacks, fire and forget style
-dispatch_queue.dispatch(self, "method_name", ["method", "arguments"]).then(self, "result_callback")
+dispatch_queue.dispatch(self, "method_name", ["optional", "method", "arguments"]).then(self, "result_callback")
+dispatch_queue.dispatch_group([
+  [self, "method_name1", ["optional", "arguments"]],
+  [self, "method_name2"],
+  [self, "method_name3"],
+]).then(self, "group_results_callback")
 
 # 4) Optionally connect to the `all_tasks_finished` signal to know when all tasks finished
 dispatch_queue.connect("all_tasks_finished", self, "_on_all_tasks_finished")
@@ -37,6 +42,9 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 
 `signal all_tasks_finished()`
 - Emitted when the last queued Task finishes.
+  This signal is emitted deferred, so it is safe to call non
+  [Thread-safe APIs](https://docs.godotengine.org/en/stable/tutorials/threads/thread_safe_apis.html).
+
 
 `create_serial()`
 - Creates a Thread of execution to process tasks.
