@@ -1,6 +1,8 @@
 """
 Resource that wraps a DispatchQueue.
 
+Useful for sharing queues with multiple objects between scenes without resorting to Autoload.
+
 Apart from creation, all DispatchQueue public methods and signals are supported.
 
 If `thread_count == 0`, runs queue in synchronous mode.

@@ -1,6 +1,8 @@
 """
 Node that wraps a DispatchQueue.
 
+Useful for having a local queue in a scene or as an Autoload.
+
 Apart from creation, all DispatchQueue public methods and signals are supported.
 
 Creates the Threads when entering tree and shuts down when exiting tree.

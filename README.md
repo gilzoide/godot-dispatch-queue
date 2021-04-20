@@ -20,8 +20,11 @@ dispatch_queue.dispatch(self, "method_name", ["method", "arguments"]).then(self,
 # DispatchQueue extends Reference, so no need to worry about freeing manually
 ```
 
-There is also a Node script ([addons/dispatch_queue/dispatch_queue_node.gd](addons/dispatch_queue/dispatch_queue_node.gd))
-that wraps every aspect of dispatch queues. Useful both as a living Node in a scene or as an Autoload.
+There is a Node script ([addons/dispatch_queue/dispatch_queue_node.gd](addons/dispatch_queue/dispatch_queue_node.gd))
+that wraps every aspect of dispatch queues. Useful for having a local queue in a scene or as an Autoload.
+
+There is also a Resource script ([addons/dispatch_queue/dispatch_queue_resource.gd](addons/dispatch_queue/dispatch_queue_resource.gd))
+that wraps every aspect of dispatch queues. Useful for sharing queues with multiple objects between scenes without resorting to Autoload.
 
 
 ## API
@@ -79,11 +82,24 @@ dispatch_queue.dispatch(object, method).then(signal_responder, method)
 
 
 **DispatchQueueNode** ([addons/dispatch_queue/dispatch_queue_node.gd](addons/dispatch_queue/dispatch_queue_node.gd)):
-Node that wraps a DispatchQueue. Useful as an Autoload to have a DispatchQueue available globally.
+
+Node that wraps a DispatchQueue.
 
 Apart from creation, all DispatchQueue public methods and signals are supported.
 
 Creates the Threads when entering tree and shuts down when exiting tree.
+
+`export(int) var thread_count = -1`
+- Number of Threads DispatchQueue will utilize.
+  If `thread_count == 0`, runs queue in synchronous mode.
+  If `thread_count < 0`, creates `OS.get_processor_count()` Threads.
+
+
+**DispatchQueueResource** ([addons/dispatch_queue/dispatch_queue_resource.gd](addons/dispatch_queue/dispatch_queue_resource.gd)):
+
+Resource that wraps a DispatchQueue.
+
+Apart from creation, all DispatchQueue public methods and signals are supported.
 
 `export(int) var thread_count = -1`
 - Number of Threads DispatchQueue will utilize.
