@@ -22,7 +22,7 @@ dispatch_queue.dispatch_group([
   [self, "method_name1", ["optional", "arguments"]],
   [self, "method_name2"],
   [self, "method_name3"],
-]).then(self, "group_results_callback")
+]).then_deferred(self, "group_results_callback")
 
 # 4) Optionally connect to the `all_tasks_finished` signal to know when all tasks finished
 dispatch_queue.connect("all_tasks_finished", self, "_on_all_tasks_finished")
