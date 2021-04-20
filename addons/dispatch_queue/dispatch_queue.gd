@@ -12,6 +12,12 @@ class TaskGroup:
 	
 	var task_count = 0
 	var task_results = []
+	var mutex: Mutex = null
+	
+	
+	func _init(threaded: bool) -> void:
+		if threaded:
+			mutex = Mutex.new()
 	
 	
 	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
@@ -44,8 +50,12 @@ class TaskGroup:
 	
 	
 	func mark_task_finished(task, result) -> void:
+		if mutex:
+			mutex.lock()
 		task_count -= 1
 		task_results[task.id_in_group] = result
+		if mutex:
+			mutex.unlock()
 		if task_count == 0:
 			emit_signal("finished", task_results)
 
@@ -94,7 +104,7 @@ class Task:
 		var result = object.callv(method, args)
 		emit_signal("finished", result)
 		if group:
-			group.call_deferred("mark_task_finished", self, result)
+			group.mark_task_finished(self, result)
 
 
 class _WorkerPool:
@@ -173,7 +183,7 @@ func dispatch(object: Object, method: String, args: Array = []) -> Task:
 
 
 func dispatch_group(task_list: Array) -> TaskGroup:
-	var group = TaskGroup.new()
+	var group = TaskGroup.new(is_threaded())
 	for args in task_list:
 		var task = callv("dispatch", args)
 		if task.object:
