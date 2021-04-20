@@ -16,7 +16,7 @@ dispatch_queue.create_serial()
 dispatch_queue.create_concurrent(OS.get_processor_count())
 # (if you do neither, DispatchQueue will run in synchronous mode)
 
-# 3) Dispatch calls and optionally register callbacks, fire and forget style
+# 3) Dispatch methods and optionally register callbacks, fire and forget style
 dispatch_queue.dispatch(self, "method_name", ["method", "arguments"]).then(self, "result_callback")
 
 # 4) Optionally connect to the `all_tasks_finished` signal to know when all tasks finished
