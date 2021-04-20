@@ -79,11 +79,11 @@ func create_serial() -> void:
 
 func create_concurrent(thread_count: int = 1) -> void:
 	"""Attempt to create a threaded Dispatch Queue with thread_count Threads"""
+	if not OS.can_use_threads() or thread_count == get_thread_count():
+		return
+	
 	if is_threaded():
 		shutdown()
-	
-	if not OS.can_use_threads():
-		return
 	
 	_workers = _WorkerPool.new()
 	for i in max(1, thread_count):

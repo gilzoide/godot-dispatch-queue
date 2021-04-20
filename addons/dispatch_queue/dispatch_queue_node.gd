@@ -64,5 +64,6 @@ func shutdown() -> void:
 	_dispatch_queue.shutdown()
 
 
+# Private functions
 func _on_all_tasks_finished() -> void:
 	emit_signal("all_tasks_finished")
