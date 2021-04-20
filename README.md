@@ -112,5 +112,9 @@ Apart from creation, all DispatchQueue public methods and signals are supported.
   If `thread_count < 0`, creates `OS.get_processor_count()` Threads.
 
 
+## Credits
+- Conveyor icon by [smalllikeart](https://www.flaticon.com/authors/smalllikeart): https://www.flaticon.com/free-icon/conveyor_888545
+
+
 ## Similar projects
 - GODOThreadPOOL: https://github.com/zmarcos/godothreadpool
