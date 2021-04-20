@@ -33,7 +33,7 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 
 
 ## API
-**DispatchQueue** ([addons/dispatch_queue/dispatch_queue.gd](addons/dispatch_queue/dispatch_queue.gd)):
+### **DispatchQueue** ([addons/dispatch_queue/dispatch_queue.gd](addons/dispatch_queue/dispatch_queue.gd)):
 
 `signal all_tasks_finished()`
 - Emitted when there are no more tasks to process.
@@ -78,7 +78,7 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
   It is safe to call this more than once.
 
 
-**Task** (inner class of DispatchQueue)
+### **Task** (inner class of DispatchQueue)
 
 `signal finished(result)`
 - Emitted after Task executes its method, passing the result as argument.
@@ -95,7 +95,7 @@ dispatch_queue.dispatch(object, method).then(signal_responder, method)
 - Alias for `then` that also adds `CONNECT_DEFERRED` to flags.
 
 
-**TaskGroup** (inner class of DispatchQueue)
+### **TaskGroup** (inner class of DispatchQueue)
 
 `signal finished()`
 - Emitted after all Tasks in the group finish.
@@ -112,7 +112,7 @@ dispatch_queue.dispatch_group(task_list).then(signal_responder, method)
 - Alias for `then` that also adds `CONNECT_DEFERRED` to flags.
 
 
-**DispatchQueueNode** ([addons/dispatch_queue/dispatch_queue_node.gd](addons/dispatch_queue/dispatch_queue_node.gd)):
+### **DispatchQueueNode** ([addons/dispatch_queue/dispatch_queue_node.gd](addons/dispatch_queue/dispatch_queue_node.gd)):
 
 Node that wraps a DispatchQueue.
 
@@ -126,7 +126,7 @@ Creates the Threads when entering tree and shuts down when exiting tree.
   If `thread_count < 0`, creates `OS.get_processor_count()` Threads.
 
 
-**DispatchQueueResource** ([addons/dispatch_queue/dispatch_queue_resource.gd](addons/dispatch_queue/dispatch_queue_resource.gd)):
+### **DispatchQueueResource** ([addons/dispatch_queue/dispatch_queue_resource.gd](addons/dispatch_queue/dispatch_queue_resource.gd)):
 
 Resource that wraps a DispatchQueue.
 
