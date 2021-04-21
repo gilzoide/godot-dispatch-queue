@@ -54,9 +54,10 @@ class TaskGroup:
 			mutex.lock()
 		task_count -= 1
 		task_results[task.id_in_group] = result
+		var is_last_task = task_count == 0
 		if mutex:
 			mutex.unlock()
-		if task_count == 0:
+		if is_last_task:
 			emit_signal("finished", task_results)
 
 
