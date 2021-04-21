@@ -175,8 +175,9 @@ func dispatch(object: Object, method: String, args: Array = []) -> Task:
 			_workers.mutex.unlock()
 			_workers.semaphore.call_deferred("post")
 		else:
+			if _task_queue.empty():
+				call_deferred("_sync_run_next_task")
 			_task_queue.append(task)
-			call_deferred("_sync_run_next_task")
 	else:
 		push_error("Object '%s' has no method named %s" % [object, method])
 	return task
@@ -236,11 +237,12 @@ func _sync_run_next_task() -> void:
 	var task = _pop_task()
 	if task:
 		task.execute()
+		call_deferred("_sync_run_next_task")
 
 
-func _pop_task(_sync_task_result = null) -> Task:
+func _pop_task() -> Task:
 	var task: Task = _task_queue.pop_front()
-	if _task_queue.empty():
+	if task and _task_queue.empty():
 		task.then_deferred(self, "_on_last_task_finished")
 	return task
 
