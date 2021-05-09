@@ -263,4 +263,5 @@ func _pop_task() -> Task:
 
 
 func _on_last_task_finished(_result):
-	emit_signal("all_tasks_finished")
+	if is_empty():
+		emit_signal("all_tasks_finished")
