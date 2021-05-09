@@ -59,6 +59,14 @@ func get_thread_count() -> int:
 	return _dispatch_queue.get_thread_count()
 
 
+func size() -> int:
+	return _dispatch_queue.size()
+
+
+func is_empty() -> bool:
+	return _dispatch_queue.is_empty()
+
+
 func clear() -> void:
 	_dispatch_queue.clear()
 

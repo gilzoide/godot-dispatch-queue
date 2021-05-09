@@ -90,6 +90,12 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 - Returns the current Thread count.
   Returns 0 on synchronous mode.
 
+`size() -> int`
+- Returns the number of queued tasks.
+
+`is_empty() -> bool`
+- Returns whether queue is empty, that is, there are no tasks queued.
+
 `clear()`
 - Cancel pending Tasks, clearing the current queue.
 

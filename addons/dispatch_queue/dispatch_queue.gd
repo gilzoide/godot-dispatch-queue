@@ -203,6 +203,21 @@ func get_thread_count() -> int:
 		return 0
 
 
+func size() -> int:
+	var result
+	if is_threaded():
+		_workers.mutex.lock()
+		result = _task_queue.size()
+		_workers.mutex.unlock()
+	else:
+		result = _task_queue.size()
+	return result
+
+
+func is_empty() -> bool:
+	return size() <= 0
+
+
 func clear() -> void:
 	if is_threaded():
 		_workers.mutex.lock()
