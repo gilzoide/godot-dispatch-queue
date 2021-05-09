@@ -18,16 +18,25 @@ dispatch_queue.create_serial()
 dispatch_queue.create_concurrent(OS.get_processor_count())
 # (if you do neither, DispatchQueue will run in synchronous mode)
 
-# 3) Dispatch methods and optionally register callbacks, fire and forget style
+# 3) Dispatch methods, optionally responding to tasks and task groups "finished" signal
+# 3.a) Fire and forget style
 dispatch_queue.dispatch(self, "method_name", ["optional", "method", "arguments"]).then(self, "result_callback")
 dispatch_queue.dispatch_group([
   [self, "method_name1", ["optional", "arguments"]],
   [self, "method_name2"],
   [self, "method_name3"],
 ]).then_deferred(self, "group_results_callback")
+# 3.b) Coroutine style
+var task = dispatch_queue.dispatch(self, "mymethod")
+var mymethod_result = yield(task, "finished")
+var task_group = dispatch_queue.dispatch_group([ [self, "method1"], [self, "method2"] ])
+var group_method_results = yield(task_group, "finished")
 
-# 4) Optionally connect to the `all_tasks_finished` signal to know when all tasks finished
+# 4) Optionally respond to the `all_tasks_finished` signal to know when all tasks have finished
+# 4.a) Connect style
 dispatch_queue.connect("all_tasks_finished", self, "_on_all_tasks_finished")
+# 4.b) Coroutine style
+yield(dispatch_queue, "all_tasks_finished")
 
 # DispatchQueue extends Reference, so no need to worry about freeing it manually
 ```
