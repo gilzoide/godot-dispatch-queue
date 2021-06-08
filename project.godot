@@ -27,10 +27,6 @@ Dispatch queues are References, but there are Node and Resource wrappers for it 
 run/main_scene="res://addons/dispatch_queue/samples/SampleScene.tscn"
 config/icon="res://icon.png"
 
-[editor_plugins]
-
-enabled=PoolStringArray( "dispatch_queue" )
-
 [physics]
 
 common/enable_pause_aware_picking=true
