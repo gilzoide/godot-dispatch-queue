@@ -13,7 +13,7 @@ extends Node
 
 signal all_tasks_finished()
 
-const DispatchQueue = preload("res://addons/dispatch_queue/dispatch_queue.gd")
+const DispatchQueue = preload("dispatch_queue.gd")
 
 export(int) var thread_count = -1 setget set_thread_count
 

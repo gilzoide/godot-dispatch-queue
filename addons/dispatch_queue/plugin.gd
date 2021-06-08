@@ -1,8 +1,8 @@
 tool
 extends EditorPlugin
 
-const DispatchQueueNode = preload("res://addons/dispatch_queue/dispatch_queue_node.gd")
-const DispatchQueueResource = preload("res://addons/dispatch_queue/dispatch_queue_resource.gd")
+const DispatchQueueNode = preload("dispatch_queue_node.gd")
+const DispatchQueueResource = preload("dispatch_queue_resource.gd")
 
 
 func _enter_tree() -> void:

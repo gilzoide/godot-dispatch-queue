@@ -7,7 +7,7 @@ onready var _dispatch_queue_node = $DispatchQueue
 
 func _ready() -> void:
 	if not dispatch_queue_resource:
-		dispatch_queue_resource = preload("res://addons/dispatch_queue/dispatch_queue_resource.gd").new()
+		dispatch_queue_resource = preload("../dispatch_queue_resource.gd").new()
 
 
 func _double(i):
