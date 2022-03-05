@@ -101,23 +101,6 @@ class Task:
 		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
 
 
-	func resume_if_valid(maybe_state):
-		"""
-		Resumes a GDScriptFunctionState if it matches that class
-		Else simply returns the state as is
-		"""
-		if maybe_state is GDScriptFunctionState:
-			# Perhaps the state has become invalid since the last check
-			if maybe_state.is_valid():
-				return maybe_state.resume()
-
-			else:
-				push_error("Object '%s' is an invalid GDScriptFunctionState" % maybe_state)
-				return null
-
-		return maybe_state
-
-
 	func execute() -> void:
 		"""
 		Execute the given task, always returns a GDScriptFunctionState
@@ -126,7 +109,7 @@ class Task:
 
 		# Handle a thread function which is in a yielding state
 		while result is GDScriptFunctionState:
-			result = resume_if_valid(result)
+			result = yield(result, "completed")
 
 		emit_signal("finished", result)
 		if group:
