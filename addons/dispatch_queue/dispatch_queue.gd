@@ -101,42 +101,32 @@ class Task:
 		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
 
 
-	func collect_result(maybe_state, certain_yield: bool = false):
+	func resume_if_valid(maybe_state):
 		"""
-		Handles collecting of a result from a function result that
-		may be a GDScriptFunctionState. Helpful when our thread task
-		might (but does not have) use yield inside.
+		Resumes a GDScriptFunctionState if it matches that class
+		Else simply returns the state as is
 		"""
-		# If we're not certain that the collected result is a yield
-		# we will yield here to make sure we can always await this function
-		if not certain_yield:
-			yield()
-
-		while maybe_state is GDScriptFunctionState:
-
+		if maybe_state is GDScriptFunctionState:
 			# Perhaps the state has become invalid since the last check
-			if not maybe_state.is_valid():
+			if maybe_state.is_valid():
+				return maybe_state.resume()
+
+			else:
 				push_error("Object '%s' is an invalid GDScriptFunctionState" % maybe_state)
 				return null
 
-			maybe_state = maybe_state.resume()
-
-		# Final result of function
 		return maybe_state
 
 
-	func collect_execution():
-		"""
-		Helper method for collecting the task result, always returns a GDScriptFunctionState
-		"""
-		return yield(collect_result(execute(), true), "completed")
-
-
 	func execute() -> void:
+		"""
+		Execute the given task, always returns a GDScriptFunctionState
+		"""
 		var result = object.callv(method, args)
 
 		# Handle a thread function which is in a yielding state
-		result = yield(collect_result(result), "completed")
+		while result is GDScriptFunctionState:
+			result = resume_if_valid(result)
 
 		emit_signal("finished", result)
 		if group:
@@ -281,13 +271,13 @@ func _run_loop(pool: _WorkerPool) -> void:
 		var task = _pop_task()
 		pool.mutex.unlock()
 		if task:
-			yield(task.collect_execution(), "completed")
+			task.execute()
 
 
 func _sync_run_next_task() -> void:
 	var task = _pop_task()
 	if task:
-		yield(task.collect_execution(), "completed")
+		task.execute()
 		call_deferred("_sync_run_next_task")
 
 
