@@ -102,9 +102,6 @@ class Task:
 
 
 	func execute() -> void:
-		"""
-		Execute the given task, always returns a GDScriptFunctionState
-		"""
 		var result = object.callv(method, args)
 
 		# Handle a thread function which is in a yielding state
