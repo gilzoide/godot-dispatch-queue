@@ -7,25 +7,25 @@ class TaskGroup:
 	Helper object that emits `finished` after all Tasks in a list finish.
 	"""
 	extends Reference
-	
+
 	signal finished(results)
-	
+
 	var task_count = 0
 	var task_results = []
 	var mutex: Mutex = null
-	
-	
+
+
 	func _init(threaded: bool) -> void:
 		if threaded:
 			mutex = Mutex.new()
-	
-	
+
+
 	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
 		"""
 		Helper method for connecting to the `finished` signal.
-		
+
 		This enables the following pattern:
-			
+
 			dispatch_queue.dispatch(object, method).then(signal_responder, method)
 		"""
 		if signal_responder.has_method(method):
@@ -33,22 +33,22 @@ class TaskGroup:
 		else:
 			push_error("Object '%s' has no method named %s" % [signal_responder, method])
 			return ERR_METHOD_NOT_FOUND
-	
-	
+
+
 	func then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
 		"""
 		Helper method for connecting to the `finished` signal with deferred flag
 		"""
 		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
-	
-	
+
+
 	func add_task(task) -> void:
 		task.group = self
 		task.id_in_group = task_count
 		task_count += 1
 		task_results.resize(task_count)
-	
-	
+
+
 	func mark_task_finished(task, result) -> void:
 		if mutex:
 			mutex.lock()
@@ -64,27 +64,27 @@ class TaskGroup:
 class Task:
 	"""
 	A single task to be executed.
-	
+
 	Connect to the `finished` signal to receive the result either manually
 	or by calling `then`/`then_deferred`.
 	"""
 	extends Reference
-	
+
 	signal finished(result)
-	
+
 	var object: Object
 	var method: String
 	var args: Array
 	var group: TaskGroup = null
 	var id_in_group: int = -1
-	
-	
+
+
 	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
 		"""
 		Helper method for connecting to the `finished` signal.
-		
+
 		This enables the following pattern:
-			
+
 			dispatch_queue.dispatch(object, method).then(signal_responder, method)
 		"""
 		if signal_responder.has_method(method):
@@ -92,17 +92,22 @@ class Task:
 		else:
 			push_error("Object '%s' has no method named %s" % [signal_responder, method])
 			return ERR_METHOD_NOT_FOUND
-	
-	
+
+
 	func then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
 		"""
 		Helper method for connecting to the `finished` signal with deferred flag
 		"""
 		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
-	
-	
+
+
 	func execute() -> void:
 		var result = object.callv(method, args)
+
+		# Handle a thread function which is in a yielding state
+		while result is GDScriptFunctionState:
+			result = yield(result, "completed")
+
 		emit_signal("finished", result)
 		if group:
 			group.mark_task_finished(self, result)
@@ -110,16 +115,16 @@ class Task:
 
 class _WorkerPool:
 	extends Reference
-	
+
 	var threads = []
 	var should_shutdown = false
 	var mutex = Mutex.new()
 	var semaphore = Semaphore.new()
-	
+
 	func _notification(what: int) -> void:
 		if what == NOTIFICATION_PREDELETE and self:
 			shutdown()
-	
+
 	func shutdown() -> void:
 		if threads.empty():
 			return
@@ -151,10 +156,10 @@ func create_concurrent(thread_count: int = 1) -> void:
 	"""Attempt to create a threaded Dispatch Queue with thread_count Threads"""
 	if not OS.can_use_threads() or thread_count == get_thread_count():
 		return
-	
+
 	if is_threaded():
 		shutdown()
-	
+
 	_workers = _WorkerPool.new()
 	for i in max(1, thread_count):
 		var thread = Thread.new()
@@ -168,7 +173,7 @@ func dispatch(object: Object, method: String, args: Array = []) -> Task:
 		task.object = object
 		task.method = method
 		task.args = args
-		
+
 		if is_threaded():
 			_workers.mutex.lock()
 			_task_queue.append(task)
@@ -189,6 +194,7 @@ func dispatch_group(task_list: Array) -> TaskGroup:
 		var task = callv("dispatch", args)
 		if task.object:
 			group.add_task(task)
+
 	return group
 
 
@@ -240,7 +246,7 @@ func _run_loop(pool: _WorkerPool) -> void:
 		pool.semaphore.wait()
 		if pool.should_shutdown:
 			break
-		
+
 		pool.mutex.lock()
 		var task = _pop_task()
 		pool.mutex.unlock()
