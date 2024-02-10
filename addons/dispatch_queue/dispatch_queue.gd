@@ -1,11 +1,10 @@
 extends RefCounted
+class_name DispatchQueue
 
 signal all_tasks_finished()
 
+## Helper object that emits `finished` after all Tasks in a list finish.
 class TaskGroup:
-	"""
-	Helper object that emits `finished` after all Tasks in a list finish.
-	"""
 	extends RefCounted
 
 	signal finished(results)
@@ -20,25 +19,20 @@ class TaskGroup:
 			mutex = Mutex.new()
 
 
+	## Helper method for connecting to the `finished` signal.
+	##
+	## This enables the following pattern:
+	##   dispatch_queue.dispatch(object, method).then(signal_responder, method)
 	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
-		"""
-		Helper method for connecting to the `finished` signal.
-
-		This enables the following pattern:
-
-			dispatch_queue.dispatch(object, method).then(signal_responder, method)
-		"""
 		if signal_responder.has_method(method):
-			return connect("finished", Callable(signal_responder, method).bind(binds), flags | CONNECT_ONE_SHOT)
+			return finished.connect(Callable(signal_responder, method).bind(binds), flags | CONNECT_ONE_SHOT)
 		else:
 			push_error("Object '%s' has no method named %s" % [signal_responder, method])
 			return ERR_METHOD_NOT_FOUND
 
 
+	## Helper method for connecting to the `finished` signal with deferred flag
 	func then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
-		"""
-		Helper method for connecting to the `finished` signal with deferred flag
-		"""
 		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
 
 
@@ -58,16 +52,13 @@ class TaskGroup:
 		if mutex:
 			mutex.unlock()
 		if is_last_task:
-			emit_signal("finished", task_results)
+			finished.emit(task_results)
 
-
+## A single task to be executed.
+##
+## Connect to the `finished` signal to receive the result either manually
+## or by calling `then`/`then_deferred`.
 class Task:
-	"""
-	A single task to be executed.
-
-	Connect to the `finished` signal to receive the result either manually
-	or by calling `then`/`then_deferred`.
-	"""
 	extends RefCounted
 
 	signal finished(result)
@@ -79,36 +70,26 @@ class Task:
 	var id_in_group: int = -1
 
 
+	## Helper method for connecting to the `finished` signal.
+	##
+	## This enables the following pattern:
+	##   dispatch_queue.dispatch(object, method).then(signal_responder, method)
 	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
-		"""
-		Helper method for connecting to the `finished` signal.
-
-		This enables the following pattern:
-
-			dispatch_queue.dispatch(object, method).then(signal_responder, method)
-		"""
 		if signal_responder.has_method(method):
-			return connect("finished", Callable(signal_responder, method).bind(binds), flags | CONNECT_ONE_SHOT)
+			return finished.connect(Callable(signal_responder, method).bind(binds), flags | CONNECT_ONE_SHOT)
 		else:
 			push_error("Object '%s' has no method named %s" % [signal_responder, method])
 			return ERR_METHOD_NOT_FOUND
 
 
+	## Helper method for connecting to the `finished` signal with deferred flag
 	func then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
-		"""
-		Helper method for connecting to the `finished` signal with deferred flag
-		"""
 		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
 
 
 	func execute() -> void:
 		var result = object.callv(method, args)
-
-		# Handle a thread function which is in a yielding state
-		while result is GDScriptFunctionState:
-			result = await result.completed
-
-		emit_signal("finished", result)
+		finished.emit(result)
 		if group:
 			group.mark_task_finished(self, result)
 
@@ -121,9 +102,11 @@ class _WorkerPool:
 	var mutex = Mutex.new()
 	var semaphore = Semaphore.new()
 
+
 	func _notification(what: int) -> void:
 		if what == NOTIFICATION_PREDELETE and self:
 			shutdown()
+
 
 	func shutdown() -> void:
 		if threads.is_empty():
@@ -154,7 +137,7 @@ func create_serial() -> void:
 
 func create_concurrent(thread_count: int = 1) -> void:
 	"""Attempt to create a threaded Dispatch Queue with thread_count Threads"""
-	if not OS.can_use_threads() or thread_count == get_thread_count():
+	if thread_count == get_thread_count():
 		return
 
 	if is_threaded():
@@ -164,7 +147,7 @@ func create_concurrent(thread_count: int = 1) -> void:
 	for i in max(1, thread_count):
 		var thread = Thread.new()
 		_workers.threads.append(thread)
-		thread.start(Callable(self, "_run_loop").bind(_workers))
+		thread.start(self._run_loop.bind(_workers))
 
 
 func dispatch(object: Object, method: String, args: Array = []) -> Task:

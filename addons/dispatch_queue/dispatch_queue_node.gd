@@ -1,19 +1,16 @@
-"""
-Node that wraps a DispatchQueue.
-
-Useful for having a local queue in a scene or as an Autoload.
-
-Apart from creation, all DispatchQueue public methods and signals are supported.
-
-Creates the Threads when entering tree and shuts down when exiting tree.
-If `thread_count == 0`, runs queue in synchronous mode.
-If `thread_count < 0`, creates `OS.get_processor_count()` Threads.
-"""
+## Node that wraps a DispatchQueue.
+##
+## Useful for having a local queue in a scene or as an Autoload.
+##
+## Apart from creation, all DispatchQueue public methods and signals are supported.
+##
+## Creates the Threads when entering tree and shuts down when exiting tree.
+## If `thread_count == 0`, runs queue in synchronous mode.
+## If `thread_count < 0`, creates `OS.get_processor_count()` Threads.
 extends Node
+class_name DispatchQueueNode
 
 signal all_tasks_finished()
-
-const DispatchQueue = preload("dispatch_queue.gd")
 
 @export var thread_count: int = -1: set = set_thread_count
 
@@ -21,7 +18,7 @@ var _dispatch_queue = DispatchQueue.new()
 
 
 func _ready() -> void:
-	_dispatch_queue.connect("all_tasks_finished", Callable(self, "_on_all_tasks_finished"))
+	_dispatch_queue.all_tasks_finished.connect(self._on_all_tasks_finished)
 
 
 func _enter_tree() -> void:
@@ -77,4 +74,4 @@ func shutdown() -> void:
 
 # Private functions
 func _on_all_tasks_finished() -> void:
-	emit_signal("all_tasks_finished")
+	all_tasks_finished.emit()

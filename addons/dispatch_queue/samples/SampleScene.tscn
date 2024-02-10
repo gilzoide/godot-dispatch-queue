@@ -1,18 +1,19 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=5 format=3 uid="uid://bqc2min8ilnei"]
 
-[ext_resource path="res://addons/dispatch_queue/samples/SampleScene.gd" type="Script" id=1]
-[ext_resource path="res://addons/dispatch_queue/dispatch_queue_node.gd" type="Script" id=2]
-[ext_resource path="res://addons/dispatch_queue/dispatch_queue_resource.gd" type="Script" id=3]
+[ext_resource type="Script" path="res://addons/dispatch_queue/samples/SampleScene.gd" id="1"]
+[ext_resource type="Script" path="res://addons/dispatch_queue/dispatch_queue_node.gd" id="2"]
+[ext_resource type="Script" path="res://addons/dispatch_queue/dispatch_queue_resource.gd" id="3"]
 
-[sub_resource type="Resource" id=1]
-script = ExtResource( 3 )
+[sub_resource type="Resource" id="1"]
+script = ExtResource("3")
 thread_count = -1
 
 [node name="Node" type="Node"]
-script = ExtResource( 1 )
-dispatch_queue_resource = SubResource( 1 )
+script = ExtResource("1")
+dispatch_queue_resource = SubResource("1")
 
 [node name="NodeButton" type="Button" parent="."]
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -22,11 +23,9 @@ offset_top = -35.0
 offset_right = -39.6548
 offset_bottom = 35.0
 text = "RUN Node"
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="ResourceButton" type="Button" parent="."]
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -36,11 +35,9 @@ offset_top = -35.0
 offset_right = 265.655
 offset_bottom = 35.0
 text = "RUN Resource"
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="DispatchQueue" type="Node" parent="."]
-script = ExtResource( 2 )
+script = ExtResource("2")
+
 [connection signal="pressed" from="NodeButton" to="." method="_on_NodeButton_pressed"]
 [connection signal="pressed" from="ResourceButton" to="." method="_on_ResourceButton_pressed"]
