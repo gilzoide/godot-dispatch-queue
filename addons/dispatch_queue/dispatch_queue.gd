@@ -9,7 +9,7 @@ class TaskGroup:
 
 	signal finished(results)
 
-	var task_count = 0
+	var task_count := 0
 	var task_results = []
 	var mutex: Mutex = null
 
@@ -89,10 +89,10 @@ class Task:
 class _WorkerPool:
 	extends RefCounted
 
-	var threads = []
-	var should_shutdown = false
-	var mutex = Mutex.new()
-	var semaphore = Semaphore.new()
+	var threads: Array[Thread] = []
+	var should_shutdown := false
+	var mutex := Mutex.new()
+	var semaphore := Semaphore.new()
 
 
 	func _notification(what: int) -> void:
@@ -107,7 +107,7 @@ class _WorkerPool:
 		for i in threads.size():
 			semaphore.post()
 		for t in threads:
-			if t.is_active():
+			if t.is_alive():
 				t.wait_to_finish()
 		threads.clear()
 		should_shutdown = false
