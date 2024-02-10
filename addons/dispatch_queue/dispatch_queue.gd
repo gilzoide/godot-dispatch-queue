@@ -8,6 +8,8 @@ signal all_tasks_finished()
 class TaskGroup:
 	extends RefCounted
 
+	## Signal emitted when the last task in the group finished.
+	## Warning: this signal is emitted in the same thread that ran the task.
 	signal finished(results)
 
 	var task_count := 0
@@ -23,7 +25,7 @@ class TaskGroup:
 	## Helper method for connecting to the `finished` signal.
 	##
 	## This enables the following pattern:
-	##   dispatch_queue.dispatch(object, method).then(signal_responder.method)
+	##   dispatch_queue.dispatch(callable).then(continuation_callable)
 	func then(callable: Callable, flags: int = 0) -> int:
 		return finished.connect(callable, flags | CONNECT_ONE_SHOT)
 
@@ -33,14 +35,14 @@ class TaskGroup:
 		return then(callable, flags | CONNECT_DEFERRED)
 
 
-	func add_task(task) -> void:
+	func add_task(task: Task) -> void:
 		task.group = self
 		task.id_in_group = task_count
 		task_count += 1
 		task_results.resize(task_count)
 
 
-	func mark_task_finished(task, result) -> void:
+	func mark_task_finished(task: Task, result) -> void:
 		if mutex:
 			mutex.lock()
 		task_count -= 1
@@ -58,11 +60,11 @@ class TaskGroup:
 class Task:
 	extends RefCounted
 
+	## Signal emitted when the task is finished.
+	## Warning: this signal is emitted in the same thread that ran the task.
 	signal finished(result)
 
-	var object: Object
-	var method: String
-	var args: Array
+	var callable: Callable
 	var group: TaskGroup = null
 	var id_in_group: int = -1
 
@@ -70,7 +72,7 @@ class Task:
 	## Helper method for connecting to the `finished` signal.
 	##
 	## This enables the following pattern:
-	##   dispatch_queue.dispatch(object, method).then(signal_responder.method)
+	##   dispatch_queue.dispatch(callable).then(continuation_callable)
 	func then(callable: Callable, flags: int = 0) -> int:
 		return finished.connect(callable, flags | CONNECT_ONE_SHOT)
 
@@ -81,7 +83,7 @@ class Task:
 
 
 	func execute() -> void:
-		var result = object.callv(method, args)
+		var result = callable.call()
 		finished.emit(result)
 		if group:
 			group.mark_task_finished(self, result)
@@ -123,13 +125,13 @@ func _notification(what: int) -> void:
 		shutdown()
 
 
+## Attempt to create a threaded Dispatch Queue with 1 Thread
 func create_serial() -> void:
-	"""Attempt to create a threaded Dispatch Queue with 1 Thread"""
 	create_concurrent(1)
 
 
+## Attempt to create a threaded Dispatch Queue with `thread_count` Threads
 func create_concurrent(thread_count: int = 1) -> void:
-	"""Attempt to create a threaded Dispatch Queue with thread_count Threads"""
 	if thread_count == get_thread_count():
 		return
 
@@ -137,19 +139,17 @@ func create_concurrent(thread_count: int = 1) -> void:
 		shutdown()
 
 	_workers = _WorkerPool.new()
+	var run_loop = self._run_loop.bind(_workers)
 	for i in max(1, thread_count):
 		var thread = Thread.new()
 		_workers.threads.append(thread)
-		thread.start(self._run_loop.bind(_workers))
+		thread.start(run_loop)
 
 
-func dispatch(object: Object, method: String, args: Array = []) -> Task:
+func dispatch(callable: Callable) -> Task:
 	var task = Task.new()
-	if object.has_method(method):
-		task.object = object
-		task.method = method
-		task.args = args
-
+	if callable.is_valid():
+		task.callable = callable
 		if is_threaded():
 			_workers.mutex.lock()
 			_task_queue.append(task)
@@ -160,16 +160,15 @@ func dispatch(object: Object, method: String, args: Array = []) -> Task:
 				call_deferred("_sync_run_next_task")
 			_task_queue.append(task)
 	else:
-		push_error("Object '%s' has no method named %s" % [object, method])
+		push_error("Trying to dispatch an invalid callable, ignoring it")
 	return task
 
 
-func dispatch_group(task_list: Array) -> TaskGroup:
+func dispatch_group(task_list: Array[Callable]) -> TaskGroup:
 	var group = TaskGroup.new(is_threaded())
-	for args in task_list:
-		var task = callv("dispatch", args)
-		if task.object:
-			group.add_task(task)
+	for callable in task_list:
+		var task: Task = dispatch(callable)
+		group.add_task(task)
 
 	return group
 

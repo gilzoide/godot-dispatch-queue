@@ -35,11 +35,11 @@ func set_thread_count(value: int) -> void:
 
 
 # DispatchQueue wrappers
-func dispatch(object: Object, method: String, args: Array = []) -> DispatchQueue.Task:
-	return _dispatch_queue.dispatch(object, method, args)
+func dispatch(callable: Callable) -> DispatchQueue.Task:
+	return _dispatch_queue.dispatch(callable)
 
 
-func dispatch_group(task_list: Array) -> DispatchQueue.TaskGroup:
+func dispatch_group(task_list: Array[Callable]) -> DispatchQueue.TaskGroup:
 	return _dispatch_queue.dispatch_group(task_list)
 
 

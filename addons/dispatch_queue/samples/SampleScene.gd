@@ -42,7 +42,7 @@ func _dispatch_all(queue) -> void:
 
 
 func _dispatch_group(queue, from: int, to: int) -> void:
-	var tasks = []
+	var tasks: Array[Callable] = []
 	for i in range(from, to):
-		tasks.append([self, "_double", [i]])
+		tasks.append(self._double.bind(i))
 	queue.dispatch_group(tasks).then(self._group_finished.bind(from, to))
