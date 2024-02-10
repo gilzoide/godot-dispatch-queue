@@ -146,6 +146,7 @@ func create_concurrent(thread_count: int = 1) -> void:
 		thread.start(run_loop)
 
 
+## Dispatch a callable in the queue
 func dispatch(callable: Callable) -> Task:
 	var task = Task.new()
 	if callable.is_valid():
@@ -164,6 +165,7 @@ func dispatch(callable: Callable) -> Task:
 	return task
 
 
+## Dispatch a group of callables in the queue.
 func dispatch_group(task_list: Array[Callable]) -> TaskGroup:
 	var group = TaskGroup.new(is_threaded())
 	for callable in task_list:
@@ -173,10 +175,13 @@ func dispatch_group(task_list: Array[Callable]) -> TaskGroup:
 	return group
 
 
+## Returns whether this DispatchQueue uses background threads.
 func is_threaded() -> bool:
 	return _workers != null
 
 
+## Get the number of threads allocated for this queue.
+## Returns 0 if the queue is running in synchronous mode.
 func get_thread_count() -> int:
 	if is_threaded():
 		return _workers.threads.size()
@@ -184,6 +189,7 @@ func get_thread_count() -> int:
 		return 0
 
 
+## Returns the number of tasks that are waiting in the queue for execution.
 func size() -> int:
 	var result
 	if is_threaded():
@@ -195,10 +201,13 @@ func size() -> int:
 	return result
 
 
+## Returns whether there are no tasks waiting in queue.
 func is_empty() -> bool:
 	return size() <= 0
 
 
+## Clears all pending tasks from the queue.
+## Tasks that are being processed are not cancelled and will run to completion.
 func clear() -> void:
 	if is_threaded():
 		_workers.mutex.lock()
@@ -208,6 +217,10 @@ func clear() -> void:
 		_task_queue.clear()
 
 
+## Clears all pending tasks and shutdown all worker threads.
+## Tasks that are being processed are not cancelled and will run to completion.
+## All tasks dispatched after shutting down a queue will run in the main thread.
+## Call `create_serial` or `create_concurrent` to recreate the worker threads.
 func shutdown() -> void:
 	clear()
 	if is_threaded():
