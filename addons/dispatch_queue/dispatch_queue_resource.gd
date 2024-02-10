@@ -11,8 +11,6 @@ class_name DispatchQueueResource
 
 signal all_tasks_finished()
 
-const DispatchQueue = preload("dispatch_queue.gd")
-
 @export var thread_count: int = -1: set = set_thread_count
 
 var _dispatch_queue = DispatchQueue.new()
