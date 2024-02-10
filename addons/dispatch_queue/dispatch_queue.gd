@@ -1,6 +1,7 @@
 extends RefCounted
 class_name DispatchQueue
 
+## Signal emitted in main thread after all tasks are finished.
 signal all_tasks_finished()
 
 ## Helper object that emits `finished` after all Tasks in a list finish.
@@ -245,4 +246,4 @@ func _pop_task() -> Task:
 
 func _on_last_task_finished(_result):
 	if is_empty():
-		emit_signal("all_tasks_finished")
+		all_tasks_finished.emit()
