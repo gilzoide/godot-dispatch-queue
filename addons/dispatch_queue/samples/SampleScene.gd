@@ -1,8 +1,8 @@
 extends Node
 
-export(Resource) var dispatch_queue_resource
+@export var dispatch_queue_resource: Resource
 
-onready var _dispatch_queue_node = $DispatchQueue
+@onready var _dispatch_queue_node = $DispatchQueue
 
 
 func _ready() -> void:
@@ -38,7 +38,7 @@ func _on_ResourceButton_pressed() -> void:
 func _dispatch_all(queue) -> void:
 	for i in 5:
 		_dispatch_group(queue, i * 10, (i + 1) * 10)
-	queue.connect("all_tasks_finished", self, "_all_finished", [], CONNECT_ONESHOT)
+	queue.connect("all_tasks_finished", Callable(self, "_all_finished").bind(), CONNECT_ONE_SHOT)
 
 
 func _dispatch_group(queue, from: int, to: int) -> void:

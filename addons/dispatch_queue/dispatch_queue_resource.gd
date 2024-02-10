@@ -14,13 +14,13 @@ signal all_tasks_finished()
 
 const DispatchQueue = preload("dispatch_queue.gd")
 
-export(int) var thread_count: int = -1 setget set_thread_count
+@export var thread_count: int = -1: set = set_thread_count
 
 var _dispatch_queue = DispatchQueue.new()
 
 
 func _init(initial_thread_count: int = -1) -> void:
-	_dispatch_queue.connect("all_tasks_finished", self, "_on_all_tasks_finished")
+	_dispatch_queue.connect("all_tasks_finished", Callable(self, "_on_all_tasks_finished"))
 	set_thread_count(initial_thread_count)
 
 

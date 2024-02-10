@@ -1,4 +1,4 @@
-extends Reference
+extends RefCounted
 
 signal all_tasks_finished()
 
@@ -6,7 +6,7 @@ class TaskGroup:
 	"""
 	Helper object that emits `finished` after all Tasks in a list finish.
 	"""
-	extends Reference
+	extends RefCounted
 
 	signal finished(results)
 
@@ -29,7 +29,7 @@ class TaskGroup:
 			dispatch_queue.dispatch(object, method).then(signal_responder, method)
 		"""
 		if signal_responder.has_method(method):
-			return connect("finished", signal_responder, method, binds, flags | CONNECT_ONESHOT)
+			return connect("finished", Callable(signal_responder, method).bind(binds), flags | CONNECT_ONE_SHOT)
 		else:
 			push_error("Object '%s' has no method named %s" % [signal_responder, method])
 			return ERR_METHOD_NOT_FOUND
@@ -68,7 +68,7 @@ class Task:
 	Connect to the `finished` signal to receive the result either manually
 	or by calling `then`/`then_deferred`.
 	"""
-	extends Reference
+	extends RefCounted
 
 	signal finished(result)
 
@@ -88,7 +88,7 @@ class Task:
 			dispatch_queue.dispatch(object, method).then(signal_responder, method)
 		"""
 		if signal_responder.has_method(method):
-			return connect("finished", signal_responder, method, binds, flags | CONNECT_ONESHOT)
+			return connect("finished", Callable(signal_responder, method).bind(binds), flags | CONNECT_ONE_SHOT)
 		else:
 			push_error("Object '%s' has no method named %s" % [signal_responder, method])
 			return ERR_METHOD_NOT_FOUND
@@ -106,7 +106,7 @@ class Task:
 
 		# Handle a thread function which is in a yielding state
 		while result is GDScriptFunctionState:
-			result = yield(result, "completed")
+			result = await result.completed
 
 		emit_signal("finished", result)
 		if group:
@@ -114,7 +114,7 @@ class Task:
 
 
 class _WorkerPool:
-	extends Reference
+	extends RefCounted
 
 	var threads = []
 	var should_shutdown = false
@@ -126,7 +126,7 @@ class _WorkerPool:
 			shutdown()
 
 	func shutdown() -> void:
-		if threads.empty():
+		if threads.is_empty():
 			return
 		should_shutdown = true
 		for i in threads.size():
@@ -164,7 +164,7 @@ func create_concurrent(thread_count: int = 1) -> void:
 	for i in max(1, thread_count):
 		var thread = Thread.new()
 		_workers.threads.append(thread)
-		thread.start(self, "_run_loop", _workers)
+		thread.start(Callable(self, "_run_loop").bind(_workers))
 
 
 func dispatch(object: Object, method: String, args: Array = []) -> Task:
@@ -180,7 +180,7 @@ func dispatch(object: Object, method: String, args: Array = []) -> Task:
 			_workers.mutex.unlock()
 			_workers.semaphore.call_deferred("post")
 		else:
-			if _task_queue.empty():
+			if _task_queue.is_empty():
 				call_deferred("_sync_run_next_task")
 			_task_queue.append(task)
 	else:
@@ -263,7 +263,7 @@ func _sync_run_next_task() -> void:
 
 func _pop_task() -> Task:
 	var task: Task = _task_queue.pop_front()
-	if task and _task_queue.empty():
+	if task and _task_queue.is_empty():
 		task.then_deferred(self, "_on_last_task_finished")
 	return task
 
