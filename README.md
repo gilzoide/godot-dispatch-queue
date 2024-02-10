@@ -54,7 +54,7 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 `signal all_tasks_finished()`
 - Emitted when the last queued Task finishes.
   This signal is emitted deferred, so it is safe to call non
-  [Thread-safe APIs](https://docs.godotengine.org/en/stable/tutorials/threads/thread_safe_apis.html).
+  [Thread-safe APIs](https://docs.godotengine.org/en/stable/tutorials/performance/thread_safe_apis.html).
 
 
 `create_serial()`
@@ -110,7 +110,7 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 - Emitted after Task executes, passing the result as argument.
   The signal is emitted in the same Thread that executed the Task, so you
   need to connect with `CONNECT_DEFERRED` if you want to call non [Thread-safe
-  APIs](https://docs.godotengine.org/en/stable/tutorials/threads/thread_safe_apis.html).
+  APIs](https://docs.godotengine.org/en/stable/tutorials/performance/thread_safe_apis.html).
 
 `then(callable: Callable, flags: int = 0)`
 - Helper method for connecting to the "finished" signal.
@@ -132,10 +132,10 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 - Emitted after all Tasks in the group finish, passing the results Array as argument.
   The signal is emitted in the same Thread that executed the last pending Task, so you
   need to connect with `CONNECT_DEFERRED` if you want to call non [Thread-safe
-  APIs](https://docs.godotengine.org/en/stable/tutorials/threads/thread_safe_apis.html).
+  APIs](https://docs.godotengine.org/en/stable/tutorials/performance/thread_safe_apis.html).
 
 `then(callable: Callable, flags: int = 0)`
-- Helper method for connecting to the "finished" signal.	
+- Helper method for connecting to the "finished" signal.
 	This enables the following pattern:
   ```gdscript
   dispatch_queue.dispatch_group(task_list).then(continuation_callable)
