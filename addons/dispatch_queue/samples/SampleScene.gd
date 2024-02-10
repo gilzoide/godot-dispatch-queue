@@ -7,7 +7,7 @@ extends Node
 
 func _ready() -> void:
 	if not dispatch_queue_resource:
-		dispatch_queue_resource = preload("../dispatch_queue_resource.gd").new()
+		dispatch_queue_resource = DispatchQueueResource.new()
 
 
 func _double(i):
@@ -38,11 +38,11 @@ func _on_ResourceButton_pressed() -> void:
 func _dispatch_all(queue) -> void:
 	for i in 5:
 		_dispatch_group(queue, i * 10, (i + 1) * 10)
-	queue.connect("all_tasks_finished", Callable(self, "_all_finished").bind(), CONNECT_ONE_SHOT)
+	queue.all_tasks_finished.connect(self._all_finished, CONNECT_ONE_SHOT)
 
 
 func _dispatch_group(queue, from: int, to: int) -> void:
 	var tasks = []
 	for i in range(from, to):
 		tasks.append([self, "_double", [i]])
-	queue.dispatch_group(tasks).then(self, "_group_finished", [from, to])
+	queue.dispatch_group(tasks).then(self._group_finished.bind(from, to))

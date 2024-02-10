@@ -22,18 +22,14 @@ class TaskGroup:
 	## Helper method for connecting to the `finished` signal.
 	##
 	## This enables the following pattern:
-	##   dispatch_queue.dispatch(object, method).then(signal_responder, method)
-	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
-		if signal_responder.has_method(method):
-			return finished.connect(Callable(signal_responder, method).bind(binds), flags | CONNECT_ONE_SHOT)
-		else:
-			push_error("Object '%s' has no method named %s" % [signal_responder, method])
-			return ERR_METHOD_NOT_FOUND
+	##   dispatch_queue.dispatch(object, method).then(signal_responder.method)
+	func then(callable: Callable, flags: int = 0) -> int:
+		return finished.connect(callable, flags | CONNECT_ONE_SHOT)
 
 
 	## Helper method for connecting to the `finished` signal with deferred flag
-	func then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
-		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
+	func then_deferred(callable: Callable, flags: int = 0) -> int:
+		return then(callable, flags | CONNECT_DEFERRED)
 
 
 	func add_task(task) -> void:
@@ -73,18 +69,14 @@ class Task:
 	## Helper method for connecting to the `finished` signal.
 	##
 	## This enables the following pattern:
-	##   dispatch_queue.dispatch(object, method).then(signal_responder, method)
-	func then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
-		if signal_responder.has_method(method):
-			return finished.connect(Callable(signal_responder, method).bind(binds), flags | CONNECT_ONE_SHOT)
-		else:
-			push_error("Object '%s' has no method named %s" % [signal_responder, method])
-			return ERR_METHOD_NOT_FOUND
+	##   dispatch_queue.dispatch(object, method).then(signal_responder.method)
+	func then(callable: Callable, flags: int = 0) -> int:
+		return finished.connect(callable, flags | CONNECT_ONE_SHOT)
 
 
 	## Helper method for connecting to the `finished` signal with deferred flag
-	func then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0) -> int:
-		return then(signal_responder, method, binds, flags | CONNECT_DEFERRED)
+	func then_deferred(callable: Callable, flags: int = 0) -> int:
+		return then(callable, flags | CONNECT_DEFERRED)
 
 
 	func execute() -> void:
@@ -247,7 +239,7 @@ func _sync_run_next_task() -> void:
 func _pop_task() -> Task:
 	var task: Task = _task_queue.pop_front()
 	if task and _task_queue.is_empty():
-		task.then_deferred(self, "_on_last_task_finished")
+		task.then_deferred(self._on_last_task_finished)
 	return task
 
 
