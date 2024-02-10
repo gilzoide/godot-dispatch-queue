@@ -6,11 +6,7 @@
 ;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
-config_version=4
-
-_global_script_classes=[  ]
-_global_script_class_icons={
-}
+config_version=5
 
 [application]
 
@@ -25,6 +21,7 @@ You can also dispatch a group of tasks at once and respond to a signal when all 
 
 Dispatch queues are References, but there are Node and Resource wrappers for it to ease integrating with other nodes and scenes."
 run/main_scene="res://addons/dispatch_queue/samples/SampleScene.tscn"
+config/features=PackedStringArray("4.2")
 config/icon="res://icon.png"
 
 [physics]
@@ -35,4 +32,3 @@ common/enable_pause_aware_picking=true
 
 quality/driver/driver_name="GLES2"
 vram_compression/import_etc=true
-vram_compression/import_etc2=false
