@@ -20,23 +20,23 @@ dispatch_queue.create_concurrent(OS.get_processor_count())
 
 # 3) Dispatch methods, optionally responding to tasks and task groups "finished" signal
 # 3.a) Fire and forget style
-dispatch_queue.dispatch(self, "method_name", ["optional", "method", "arguments"]).then(self, "result_callback")
+dispatch_queue.dispatch(self.method_name.bind("optional", "method", "arguments")).then(self.result_callback)
 dispatch_queue.dispatch_group([
-  [self, "method_name1", ["optional", "arguments"]],
-  [self, "method_name2"],
-  [self, "method_name3"],
-]).then_deferred(self, "group_results_callback")
+  self.method_name1.bind("optional", "arguments"),
+  self.method_name2,
+  self.method_name3,
+]).then_deferred(self.group_results_callback)
 # 3.b) Coroutine style
-var task = dispatch_queue.dispatch(self, "mymethod")
-var mymethod_result = yield(task, "finished")
-var task_group = dispatch_queue.dispatch_group([ [self, "method1"], [self, "method2"] ])
-var group_method_results = yield(task_group, "finished")
+var task = dispatch_queue.dispatch(self.mymethod)
+var mymethod_result = await task.finished
+var task_group = dispatch_queue.dispatch_group([self.method1, self.method2])
+var group_method_results = await task_group.finished
 
 # 4) Optionally respond to the `all_tasks_finished` signal to know when all tasks have finished
 # 4.a) Connect style
-dispatch_queue.connect("all_tasks_finished", self, "_on_all_tasks_finished")
+dispatch_queue.all_tasks_finished.connect(self._on_all_tasks_finished)
 # 4.b) Coroutine style
-yield(dispatch_queue, "all_tasks_finished")
+await dispatch_queue.all_tasks_finished
 
 # DispatchQueue extends Reference, so no need to worry about freeing it manually
 ```
@@ -71,17 +71,13 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
   If `thread_count <= 1`, creates a serial queue.
 
 
-`dispatch(object: Object, method: String, args: Array = []) -> Task`
-- Create a Task for calling `method` on `object` with `args`.
-  On threaded mode, the Task will be executed on a Thread when
-  there is one available.
+`dispatch(callable: Callable) -> Task`
+- Create a Task for executing `callable`.
+  On threaded mode, the Task will be executed on a Thread when there is one available.
   On synchronous mode, the Task will be executed on the next frame.
 
-`dispatch_group(task_list: Array) -> TaskGroup`
-- Create all tasks in `task_list` by calling `dispatch` on each value,
-  returning the TaskGroup associated with them.
-  `task_list` should be an Array of Arrays, each of them containing the
-  object, method and optional args Array, in this order.
+`dispatch_group(task_list: Array[Callable]) -> TaskGroup`
+- Create all tasks in `task_list` by calling `dispatch` on each value, returning the TaskGroup associated with them.
 
 `is_threaded() -> bool`
 - Returns whether queue is threaded or synchronous.
@@ -98,9 +94,12 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 
 `clear()`
 - Cancel pending Tasks, clearing the current queue.
+  Tasks that are being processed will still run to completion.
 
 `shutdown()`
 - Cancel pending Tasks, wait and release the used Threads.
+  The queue now runs in synchronous mode, so that new tasks will run in the main thread.
+  Call `create_serial` or `create_concurrent` to recreate the worker threads.
   This method is called automatically on `NOTIFICATION_PREDELETE`.
   It is safe to call this more than once.
 
@@ -108,21 +107,23 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
 ### **Task** (inner class of DispatchQueue)
 
 `signal finished(result)`
-- Emitted after Task executes its method, passing the result as argument.
+- Emitted after Task executes, passing the result as argument.
   The signal is emitted in the same Thread that executed the Task, so you
   need to connect with `CONNECT_DEFERRED` if you want to call non [Thread-safe
   APIs](https://docs.godotengine.org/en/stable/tutorials/threads/thread_safe_apis.html).
 
-`then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0)`
-- Helper method for connecting to the "finished" signal.	
-  Always adds `CONNECT_ONESHOT` to flags.
+`then(callable: Callable, flags: int = 0)`
+- Helper method for connecting to the "finished" signal.
 	This enables the following pattern:
-```gdscript
-dispatch_queue.dispatch(object, method).then(signal_responder, method)
-```
+  ```gdscript
+  dispatch_queue.dispatch(task).then(continuation_callable)
+  ```
 
-`then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0)`
+`then_deferred(callable: Callable, flags: int = 0)`
 - Alias for `then` that also adds `CONNECT_DEFERRED` to flags.
+  ```gdscript
+  dispatch_queue.dispatch(task).then_deferred(continuation_callable)
+  ```
 
 
 ### **TaskGroup** (inner class of DispatchQueue)
@@ -133,16 +134,18 @@ dispatch_queue.dispatch(object, method).then(signal_responder, method)
   need to connect with `CONNECT_DEFERRED` if you want to call non [Thread-safe
   APIs](https://docs.godotengine.org/en/stable/tutorials/threads/thread_safe_apis.html).
 
-`then(signal_responder: Object, method: String, binds: Array = [], flags: int = 0)`
+`then(callable: Callable, flags: int = 0)`
 - Helper method for connecting to the "finished" signal.	
-  Always adds `CONNECT_ONESHOT` to flags.
 	This enables the following pattern:
-```gdscript
-dispatch_queue.dispatch_group(task_list).then(signal_responder, method)
-```
+  ```gdscript
+  dispatch_queue.dispatch_group(task_list).then(continuation_callable)
+  ```
 
-`then_deferred(signal_responder: Object, method: String, binds: Array = [], flags: int = 0)`
+`then_deferred(callable: Callable, flags: int = 0)`
 - Alias for `then` that also adds `CONNECT_DEFERRED` to flags.
+  ```gdscript
+  dispatch_queue.dispatch_group(task_list).then_deferred(continuation_callable)
+  ```
 
 
 ### **DispatchQueueNode** ([addons/dispatch_queue/dispatch_queue_node.gd](addons/dispatch_queue/dispatch_queue_node.gd)):

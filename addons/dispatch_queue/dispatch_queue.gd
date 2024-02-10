@@ -1,15 +1,17 @@
 extends RefCounted
 class_name DispatchQueue
 
-## Signal emitted in main thread after all tasks are finished.
+## Emitted when the last queued Task finishes.
+## This signal is emitted deferred, so it is safe to call non Thread-safe APIs.
 signal all_tasks_finished()
 
-## Helper object that emits `finished` after all Tasks in a list finish.
+## Helper object that emits "finished" after all Tasks in a list finish.
 class TaskGroup:
 	extends RefCounted
 
-	## Signal emitted when the last task in the group finished.
-	## Warning: this signal is emitted in the same thread that ran the task.
+	## Emitted after Task executes, passing the result as argument.
+	## The signal is emitted in the same Thread that executed the Task, so you
+	## need to connect with CONNECT_DEFERRED if you want to call non Thread-safe APIs.
 	signal finished(results)
 
 	var task_count := 0
@@ -22,15 +24,15 @@ class TaskGroup:
 			mutex = Mutex.new()
 
 
-	## Helper method for connecting to the `finished` signal.
+	## Helper method for connecting to the "finished" signal.
 	##
 	## This enables the following pattern:
-	##   dispatch_queue.dispatch(callable).then(continuation_callable)
+	##   dispatch_queue.dispatch_group(task_list).then(continuation_callable)
 	func then(callable: Callable, flags: int = 0) -> int:
 		return finished.connect(callable, flags | CONNECT_ONE_SHOT)
 
 
-	## Helper method for connecting to the `finished` signal with deferred flag
+	## Alias for `then` that also adds CONNECT_DEFERRED to flags.
 	func then_deferred(callable: Callable, flags: int = 0) -> int:
 		return then(callable, flags | CONNECT_DEFERRED)
 
@@ -60,8 +62,9 @@ class TaskGroup:
 class Task:
 	extends RefCounted
 
-	## Signal emitted when the task is finished.
-	## Warning: this signal is emitted in the same thread that ran the task.
+	## Emitted after all Tasks in the group finish, passing the results Array as argument.
+	## The signal is emitted in the same Thread that executed the last pending Task, so you
+  	## need to connect with CONNECT_DEFERRED if you want to call non Thread-safe APIs.
 	signal finished(result)
 
 	var callable: Callable
@@ -69,7 +72,7 @@ class Task:
 	var id_in_group: int = -1
 
 
-	## Helper method for connecting to the `finished` signal.
+	## Helper method for connecting to the "finished" signal.
 	##
 	## This enables the following pattern:
 	##   dispatch_queue.dispatch(callable).then(continuation_callable)
@@ -77,7 +80,7 @@ class Task:
 		return finished.connect(callable, flags | CONNECT_ONE_SHOT)
 
 
-	## Helper method for connecting to the `finished` signal with deferred flag
+	## Alias for `then` that also adds CONNECT_DEFERRED to flags.
 	func then_deferred(callable: Callable, flags: int = 0) -> int:
 		return then(callable, flags | CONNECT_DEFERRED)
 
@@ -125,12 +128,16 @@ func _notification(what: int) -> void:
 		shutdown()
 
 
-## Attempt to create a threaded Dispatch Queue with 1 Thread
+## Creates a Thread of execution to process tasks.
+## If queue was already serial, this is a no-op, otherwise calls `shutdown` and create a new Thread.
 func create_serial() -> void:
 	create_concurrent(1)
 
 
-## Attempt to create a threaded Dispatch Queue with `thread_count` Threads
+## Creates `thread_count` Threads of execution to process tasks.
+## If queue was already concurrent with `thread_count` Threads, this is a no-op.
+## Otherwise calls `shutdown` and create new Threads.
+## If `thread_count <= 1`, creates a serial queue.
 func create_concurrent(thread_count: int = 1) -> void:
 	if thread_count == get_thread_count():
 		return
@@ -146,7 +153,9 @@ func create_concurrent(thread_count: int = 1) -> void:
 		thread.start(run_loop)
 
 
-## Dispatch a callable in the queue
+## Create a Task for executing `callable`.
+## On threaded mode, the Task will be executed on a Thread when there is one available.
+## On synchronous mode, the Task will be executed on the next frame.
 func dispatch(callable: Callable) -> Task:
 	var task = Task.new()
 	if callable.is_valid():
@@ -165,7 +174,8 @@ func dispatch(callable: Callable) -> Task:
 	return task
 
 
-## Dispatch a group of callables in the queue.
+## Create all tasks in `task_list` by calling `dispatch` on each value,
+## returning the TaskGroup associated with them.
 func dispatch_group(task_list: Array[Callable]) -> TaskGroup:
 	var group = TaskGroup.new(is_threaded())
 	for callable in task_list:
@@ -175,13 +185,13 @@ func dispatch_group(task_list: Array[Callable]) -> TaskGroup:
 	return group
 
 
-## Returns whether this DispatchQueue uses background threads.
+## Returns whether queue is threaded or synchronous.
 func is_threaded() -> bool:
 	return _workers != null
 
 
-## Get the number of threads allocated for this queue.
-## Returns 0 if the queue is running in synchronous mode.
+## Returns the current Thread count.
+## Returns 0 on synchronous mode.
 func get_thread_count() -> int:
 	if is_threaded():
 		return _workers.threads.size()
@@ -189,7 +199,7 @@ func get_thread_count() -> int:
 		return 0
 
 
-## Returns the number of tasks that are waiting in the queue for execution.
+## Returns the number of queued tasks.
 func size() -> int:
 	var result
 	if is_threaded():
@@ -201,13 +211,13 @@ func size() -> int:
 	return result
 
 
-## Returns whether there are no tasks waiting in queue.
+## Returns whether queue is empty, that is, there are no tasks queued.
 func is_empty() -> bool:
 	return size() <= 0
 
 
-## Clears all pending tasks from the queue.
-## Tasks that are being processed are not cancelled and will run to completion.
+## Cancel pending Tasks, clearing the current queue.
+## Tasks that are being processed will still run to completion.
 func clear() -> void:
 	if is_threaded():
 		_workers.mutex.lock()
@@ -217,10 +227,11 @@ func clear() -> void:
 		_task_queue.clear()
 
 
-## Clears all pending tasks and shutdown all worker threads.
-## Tasks that are being processed are not cancelled and will run to completion.
-## All tasks dispatched after shutting down a queue will run in the main thread.
+## Cancel pending Tasks, wait and release the used Threads.
+## The queue now runs in synchronous mode, so that new tasks will run in the main thread.
 ## Call `create_serial` or `create_concurrent` to recreate the worker threads.
+## This method is called automatically on `NOTIFICATION_PREDELETE`.
+## It is safe to call this more than once.
 func shutdown() -> void:
 	clear()
 	if is_threaded():
