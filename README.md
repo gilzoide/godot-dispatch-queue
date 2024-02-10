@@ -1,4 +1,10 @@
 # Dispatch Queue
+
+> **Warning**
+>
+> This branch is only usable with Godot 3.X.
+> For Godot 4.X support, check out the [main](https://github.com/gilzoide/godot-dispatch-queue/tree/main/) branch.
+
 Threaded or synchronous Dispatch Queues for [Godot](https://godotengine.org/).
 
 Threaded Dispatch Queues are also known as Thread Pools.
