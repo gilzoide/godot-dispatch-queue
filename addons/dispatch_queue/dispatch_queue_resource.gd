@@ -1,26 +1,23 @@
-"""
-Resource that wraps a DispatchQueue.
-
-Useful for sharing queues with multiple objects between scenes without resorting to Autoload.
-
-Apart from creation, all DispatchQueue public methods and signals are supported.
-
-If `thread_count == 0`, runs queue in synchronous mode.
-If `thread_count < 0`, creates `OS.get_processor_count()` Threads.
-"""
+## Resource that wraps a DispatchQueue.
+##
+## Useful for sharing queues with multiple objects between scenes without resorting to Autoload.
+##
+## Apart from creation, all DispatchQueue public methods and signals are supported.
+##
+## If `thread_count == 0`, runs queue in synchronous mode.
+## If `thread_count < 0`, creates `OS.get_processor_count()` Threads.
 extends Resource
+class_name DispatchQueueResource
 
 signal all_tasks_finished()
 
-const DispatchQueue = preload("dispatch_queue.gd")
-
-export(int) var thread_count: int = -1 setget set_thread_count
+@export var thread_count: int = -1: set = set_thread_count
 
 var _dispatch_queue = DispatchQueue.new()
 
 
 func _init(initial_thread_count: int = -1) -> void:
-	_dispatch_queue.connect("all_tasks_finished", self, "_on_all_tasks_finished")
+	_dispatch_queue.all_tasks_finished.connect(self._on_all_tasks_finished)
 	set_thread_count(initial_thread_count)
 
 
@@ -32,15 +29,15 @@ func set_thread_count(value: int) -> void:
 		_dispatch_queue.shutdown()
 	else:
 		_dispatch_queue.create_concurrent(thread_count)
-	emit_signal("changed")
+	emit_changed()
 
 
 # DispatchQueue wrappers
-func dispatch(object: Object, method: String, args: Array = []) -> DispatchQueue.Task:
-	return _dispatch_queue.dispatch(object, method, args)
+func dispatch(callable: Callable) -> DispatchQueue.Task:
+	return _dispatch_queue.dispatch(callable)
 
 
-func dispatch_group(task_list: Array) -> DispatchQueue.TaskGroup:
+func dispatch_group(task_list: Array[Callable]) -> DispatchQueue.TaskGroup:
 	return _dispatch_queue.dispatch_group(task_list)
 
 
@@ -70,4 +67,4 @@ func shutdown() -> void:
 
 # Private functions
 func _on_all_tasks_finished() -> void:
-	emit_signal("all_tasks_finished")
+	all_tasks_finished.emit()
