@@ -1,6 +1,6 @@
 extends Node
 
-@export var dispatch_queue_resource: Resource
+@export var dispatch_queue_resource: DispatchQueueResource
 
 @onready var _dispatch_queue_node = $DispatchQueue
 
