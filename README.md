@@ -14,8 +14,6 @@ Available at the [Asset Library](https://godotengine.org/asset-library/asset/924
 
 ## Usage
 ```gdscript
-const DispatchQueue = preload("res://addons/dispatch_queue/dispatch_queue.gd")
-
 # 1) Instantiate
 var dispatch_queue = DispatchQueue.new()
 # 2.a) Either create a serial...
@@ -44,7 +42,7 @@ dispatch_queue.all_tasks_finished.connect(self._on_all_tasks_finished)
 # 4.b) Coroutine style
 await dispatch_queue.all_tasks_finished
 
-# DispatchQueue extends Reference, so no need to worry about freeing it manually
+# DispatchQueue extends RefCounted, so no need to worry about freeing it manually
 ```
 
 There is a Node script ([addons/dispatch_queue/dispatch_queue_node.gd](addons/dispatch_queue/dispatch_queue_node.gd))
