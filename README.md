@@ -9,7 +9,7 @@ Threaded or synchronous Dispatch Queues for [Godot](https://godotengine.org/).
 
 Threaded Dispatch Queues are also known as Thread Pools.
 
-Available at the [Asset Library](https://godotengine.org/asset-library/asset/924).
+Available at the [Asset Library](https://godotengine.org/asset-library/asset/3001).
 
 
 ## Usage
