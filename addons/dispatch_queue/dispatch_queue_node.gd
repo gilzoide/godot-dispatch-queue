@@ -40,12 +40,12 @@ func set_thread_count(value: int) -> void:
 
 
 # DispatchQueue wrappers
-func dispatch(callable: Callable) -> DispatchQueue.Task:
-	return _dispatch_queue.dispatch(callable)
+func dispatch(callable: Callable, priority: int = 0) -> DispatchQueue.Task:
+	return _dispatch_queue.dispatch(callable, priority)
 
 
-func dispatch_group(task_list: Array[Callable]) -> DispatchQueue.TaskGroup:
-	return _dispatch_queue.dispatch_group(task_list)
+func dispatch_group(task_list: Array[Callable], priority: int = 0) -> DispatchQueue.TaskGroup:
+	return _dispatch_queue.dispatch_group(task_list, priority)
 
 
 func is_threaded() -> bool:
