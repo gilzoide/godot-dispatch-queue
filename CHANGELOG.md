@@ -1,5 +1,8 @@
 # Changelog
-## [Unreleased](https://github.com/gilzoide/godot-dispatch-queue/compare/1.0.0...HEAD)
+## [Unreleased](https://github.com/gilzoide/godot-dispatch-queue/compare/1.1.0...HEAD)
+
+
+## [1.1.0](https://github.com/gilzoide/godot-dispatch-queue/releases/tag/1.1.0)
 ### Added
 - Support for task priority by passing an optional priority to `DispatchQueue.dispatch` and `DispatchQueue.dispatch_group`.
   Tasks with lower priority are dispatched first.

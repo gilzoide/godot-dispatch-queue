@@ -1,5 +1,5 @@
 # Dispatch Queue
-[![Godot Asset Library page](https://img.shields.io/static/v1?logo=godotengine&label=asset%20library&color=478CBF&message=1.0.0)](https://godotengine.org/asset-library/asset/3001)
+[![Godot Asset Library page](https://img.shields.io/static/v1?logo=godotengine&label=asset%20library&color=478CBF&message=1.1.0)](https://godotengine.org/asset-library/asset/3001)
 
 > **Warning**
 >
