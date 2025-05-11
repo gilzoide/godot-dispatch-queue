@@ -1,12 +1,7 @@
 # Normalize EOL for all files that Git considers text files.
 * text=auto eol=lf
 
-# Ignore some files when exporting to ZIP.
-/.editorconfig      export-ignore
-/.git*              export-ignore
-/.github/**         export-ignore
-/LICENSE            export-ignore
-/README.md          export-ignore
-/*.cfg              export-ignore
-/*.godot            export-ignore
-/*.png*             export-ignore
+# Only include the addons folder when downloading from the Asset Library.
+/**        export-ignore
+/addons    !export-ignore
+/addons/** !export-ignore
