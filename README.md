@@ -1,4 +1,5 @@
 # Dispatch Queue
+[![Godot Asset Library page](https://img.shields.io/static/v1?logo=godotengine&label=asset%20library&color=478CBF&message=1.0.0)](https://godotengine.org/asset-library/asset/3001)
 
 > **Warning**
 >
@@ -9,7 +10,7 @@ Threaded or synchronous Dispatch Queues for [Godot](https://godotengine.org/).
 
 Threaded Dispatch Queues are also known as Thread Pools.
 
-Available at the [Asset Library](https://godotengine.org/asset-library/asset/3001).
+Available at the Asset Library as [Dispatch Queue](https://godotengine.org/asset-library/asset/3001).
 
 
 ## Usage
