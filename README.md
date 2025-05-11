@@ -75,13 +75,15 @@ that wraps every aspect of dispatch queues. Useful for sharing queues with multi
   If `thread_count <= 1`, creates a serial queue.
 
 
-`dispatch(callable: Callable) -> Task`
-- Create a Task for executing `callable`.
-  On threaded mode, the Task will be executed on a Thread when there is one available.
-  On synchronous mode, the Task will be executed on the next frame.
+`dispatch(callable: Callable, priority: int = 0) -> Task`
+- Create a Task for executing `callable`, optionally setting a `priority`
+  On threaded mode, the Task will be queued to be executed on a Thread in `priority` order.
+  On synchronous mode, the Task will be queued to be executed in `priority` order on the next frame.
+  Tasks whose `priority` is lower will execute first.
 
-`dispatch_group(task_list: Array[Callable]) -> TaskGroup`
-- Create all tasks in `task_list` by calling `dispatch` on each value, returning the TaskGroup associated with them.
+`dispatch_group(task_list: Array[Callable], priority: int = 0) -> TaskGroup`
+- Create all tasks in `task_list` by calling `dispatch` on each value with priority `priority`, returning the TaskGroup associated with them.
+  TaskGroups whose `priority` is lower will execute first.
 
 `is_threaded() -> bool`
 - Returns whether queue is threaded or synchronous.

@@ -68,6 +68,7 @@ class Task:
 	signal finished(result)
 
 	var callable: Callable
+	var priority: int
 	var group: TaskGroup = null
 	var id_in_group: int = -1
 
@@ -153,33 +154,36 @@ func create_concurrent(thread_count: int = 1) -> void:
 		thread.start(run_loop)
 
 
-## Create a Task for executing `callable`.
-## On threaded mode, the Task will be executed on a Thread when there is one available.
-## On synchronous mode, the Task will be executed on the next frame.
-func dispatch(callable: Callable) -> Task:
+## Create a Task for executing `callable`, optionally setting a `priority`
+## On threaded mode, the Task will be queued to be executed on a Thread in `priority` order.
+## On synchronous mode, the Task will be queued to be executed in `priority` order on the next frame.
+## Tasks whose `priority` is lower will execute first.
+func dispatch(callable: Callable, priority: int = 0) -> Task:
 	var task = Task.new()
 	if callable.is_valid():
 		task.callable = callable
+		task.priority = priority
 		if is_threaded():
 			_workers.mutex.lock()
-			_task_queue.append(task)
+			_insert_task(task)
 			_workers.mutex.unlock()
 			_workers.semaphore.call_deferred("post")
 		else:
 			if _task_queue.is_empty():
 				call_deferred("_sync_run_next_task")
-			_task_queue.append(task)
+			_insert_task(task)
 	else:
 		push_error("Trying to dispatch an invalid callable, ignoring it")
 	return task
 
 
-## Create all tasks in `task_list` by calling `dispatch` on each value,
+## Create all tasks in `task_list` by calling `dispatch` on each value with priority `priority`,
 ## returning the TaskGroup associated with them.
-func dispatch_group(task_list: Array[Callable]) -> TaskGroup:
+## TaskGroups whose `priority` is lower will execute first.
+func dispatch_group(task_list: Array[Callable], priority: int = 0) -> TaskGroup:
 	var group = TaskGroup.new(is_threaded())
 	for callable in task_list:
-		var task: Task = dispatch(callable)
+		var task: Task = dispatch(callable, priority)
 		group.add_task(task)
 
 	return group
@@ -258,6 +262,14 @@ func _sync_run_next_task() -> void:
 	if task:
 		task.execute()
 		call_deferred("_sync_run_next_task")
+
+
+func _insert_task(task: Task) -> void:
+	if not _task_queue or _task_queue[-1].priority <= task.priority:
+		_task_queue.append(task)
+	else:
+		var index := _task_queue.bsearch_custom(task.priority, func(p, tsk): return p < tsk.priority, false)
+		_task_queue.insert(index, task)
 
 
 func _pop_task() -> Task:
